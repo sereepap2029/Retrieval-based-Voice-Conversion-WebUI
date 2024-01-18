@@ -24,29 +24,33 @@ An easy-to-use Voice Conversion framework based on VITS.<br><br>
 
 Check our [Demo Video](https://www.bilibili.com/video/BV1pm4y1z7Gm/) here!
 
-Realtime Voice Conversion Software using RVC : [w-okada/voice-changer](https://github.com/w-okada/voice-changer)
+Training/Inference WebUI：go-web.bat
 
+![image](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/assets/129054828/00387c1c-51b1-4010-947d-3f3ecac95b87)
 
-> The dataset for the pre-training model uses nearly 50 hours of high quality VCTK open source dataset.
+Realtime Voice Conversion GUI：go-realtime-gui.bat
 
-> High quality licensed song datasets will be added to training-set one after another for your use, without worrying about copyright infringement.
+![image](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/assets/129054828/143246a9-8b42-4dd1-a197-430ede4d15d7)
+
+> The dataset for the pre-training model uses nearly 50 hours of high quality audio from the VCTK open source dataset.
+
+> High quality licensed song datasets will be added to the training-set often for your use, without having to worry about copyright infringement.
 
 > Please look forward to the pretrained base model of RVCv3, which has larger parameters, more training data, better results, unchanged inference speed, and requires less training data for training.
 
-## Summary
-This repository has the following features:
+## Features:
 + Reduce tone leakage by replacing the source feature to training-set feature using top1 retrieval;
-+ Easy and fast training, even on relatively poor graphics cards;
-+ Training with a small amount of data also obtains relatively good results (>=10min low noise speech recommended);
-+ Supporting model fusion to change timbres (using ckpt processing tab->ckpt merge);
-+ Easy-to-use Webui interface;
-+ Use the UVR5 model to quickly separate vocals and instruments.
-+ Use the most powerful High-pitch Voice Extraction Algorithm [InterSpeech2023-RMVPE](#Credits) to prevent the muted sound problem. Provides the best results (significantly) and is faster, with even lower resource consumption than Crepe_full.
-+ AMD/Intel graphics cards acceleration supported.
++ Easy + fast training, even on poor graphics cards;
++ Training with a small amounts of data (>=10min low noise speech recommended);
++ Model fusion to change timbres (using ckpt processing tab->ckpt merge);
++ Easy-to-use WebUI;
++ UVR5 model to quickly separate vocals and instruments;
++ High-pitch Voice Extraction Algorithm [InterSpeech2023-RMVPE](#Credits) to prevent a muted sound problem. Provides the best results (significantly) and is faster with lower resource consumption than Crepe_full;
++ AMD/Intel graphics cards acceleration supported;
 + Intel ARC graphics cards acceleration with IPEX supported.
 
 ## Preparing the environment
-The following commands need to be executed in the environment of Python version 3.8 or higher.
+The following commands need to be executed with Python 3.8 or higher.
 
 (Windows/Linux)
 First install the main dependencies through pip:
@@ -57,6 +61,9 @@ pip install torch torchvision torchaudio
 
 #For Windows + Nvidia Ampere Architecture(RTX30xx), you need to specify the cuda version corresponding to pytorch according to the experience of https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/issues/21
 #pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+
+#For Linux + AMD Cards, you need to use the following pytorch versions:
+#pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm5.4.2
 ```
 
 Then can use poetry to install the other dependencies:
@@ -75,12 +82,14 @@ You can also use pip to install them:
 for Nvidia graphics cards
   pip install -r requirements.txt
 
-for AMD/Intel graphics cards：
+for AMD/Intel graphics cards on Windows (DirectML)：
   pip install -r requirements-dml.txt
 
 for Intel ARC graphics cards on Linux / WSL using Python 3.10: 
   pip install -r requirements-ipex.txt
 
+for AMD graphics cards on Linux (ROCm):
+  pip install -r requirements-amd.txt
 ```
 
 ------
@@ -92,7 +101,12 @@ sh ./run.sh
 ## Preparation of other Pre-models
 RVC requires other pre-models to infer and train.
 
-You need to download them from our [Huggingface space](https://huggingface.co/lj1995/VoiceConversionWebUI/tree/main/).
+```bash
+#Download all needed models from https://huggingface.co/lj1995/VoiceConversionWebUI/tree/main/
+python tools/download_models.py
+```
+
+Or just download them by yourself from our [Huggingface space](https://huggingface.co/lj1995/VoiceConversionWebUI/tree/main/).
 
 Here's a list of Pre-models and other files that RVC needs:
 ```bash
@@ -135,7 +149,31 @@ Then use this command to start Webui:
 ```bash
 python infer-web.py
 ```
+
 If you are using Windows or macOS, you can download and extract `RVC-beta.7z` to use RVC directly by using `go-web.bat` on windows or `sh ./run.sh` on macOS to start Webui.
+
+## ROCm Support for AMD graphic cards (Linux only)
+To use ROCm on Linux install all required drivers as described [here](https://rocm.docs.amd.com/en/latest/deploy/linux/os-native/install.html).
+
+On Arch use pacman to install the driver:
+````
+pacman -S rocm-hip-sdk rocm-opencl-sdk
+````
+
+You might also need to set these environment variables (e.g. on a RX6700XT):
+````
+export ROCM_PATH=/opt/rocm
+export HSA_OVERRIDE_GFX_VERSION=10.3.0
+````
+Make sure your user is part of the `render` and `video` group:
+````
+sudo usermod -aG render $USERNAME
+sudo usermod -aG video $USERNAME
+````
+After that you can run the WebUI:
+```bash
+python infer-web.py
+```
 
 ## Credits
 + [ContentVec](https://github.com/auspicious3000/contentvec/)
